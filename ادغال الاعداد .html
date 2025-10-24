@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>مغامرة أدغال الأعداد — لعبة تفاعلية</title>
+<style>
+  :root{
+    --bg1:#071218; --panel:#0b1f13; --accent:#7dd3fc; --accent2:#60a5fa;
+    --good:#16a34a; --bad:#ef4444; --muted:#9fb0c8; --gold:#fbbf24;
+    --leaf:#0b6b3a;
+  }
+  *{box-sizing:border-box;font-family:"Tajawal",system-ui,Arial,sans-serif}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#031017,#072022);color:#e6f6ef}
+  .wrap{max-width:1100px;margin:14px auto;padding:14px}
+  header{display:flex;align-items:center;gap:12px}
+  .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--leaf),#2db86b);display:flex;align-items:center;justify-content:center;font-weight:900;color:#04263b;font-size:30px;box-shadow:0 12px 30px rgba(2,6,23,0.6)}
+  h1{margin:0;font-size:20px}
+  .subtitle{color:var(--muted);font-size:13px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:12px}
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:12px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+  .layout{display:grid;grid-template-columns:2fr 360px;gap:14px;margin-top:14px}
+  main.game{min-height:640px;padding:0;border-radius:12px;overflow:hidden;position:relative}
+  /* Jungle background layers */
+  .jungle{
+    position:relative;height:420px;background:
+      radial-gradient(600px 200px at 10% 10%, rgba(40,120,60,0.06), transparent 8%),
+      linear-gradient(180deg,#063027 0%, #072b1f 60%);
+    overflow:hidden;padding:18px;
+  }
+  .sky{
+    position:absolute;inset:0;background:
+      linear-gradient(180deg, rgba(255,255,255,0.02), transparent 30%);
+    pointer-events:none;
+  }
+  .layer.leaves{position:absolute;left:0;right:0;bottom:0;height:160px;background:
+    linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.2));
+    mask-image: radial-gradient(circle at 50% 0%, black 10%, transparent 60%);
+  }
+  /* path */
+  .path{position:absolute;left:6%;right:6%;bottom:18px;height:120px;background:
+    linear-gradient(180deg,#152a18,#0c1a11);border-radius:18px;box-shadow:inset 0 6px 16px rgba(0,0,0,0.6)}
+  /* avatar */
+  .avatarWrap{position:absolute;bottom:76px;left:calc(6% + 6px);width:100px;height:100px;transition:transform 700ms cubic-bezier(.2,.9,.2,1)}
+  .avatar{
+    width:100%;height:100%;border-radius:12px;background:linear-gradient(180deg,#ffd27a,#ffb86b);display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:900;color:#2b1500;box-shadow:0 12px 30px rgba(0,0,0,0.5)
+  }
+  /* stage nodes */
+  .nodes{position:absolute;left:6%;right:6%;bottom:40px;height:0;display:flex;justify-content:space-between;align-items:center;pointer-events:none}
+  .node{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.06);border:2px solid rgba(255,255,255,0.02)}
+  .node.done{background:linear-gradient(90deg,var(--gold),#ffd689);box-shadow:0 8px 18px rgba(0,0,0,0.5)}
+  /* question card */
+  .qcard{padding:18px;border-radius:12px;position:relative;top:12px;margin:12px 18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))}
+  .qtext{font-size:22px;font-weight:800;color:#e6f6ef}
+  .options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+  .opt{padding:12px;border-radius:10px;background:rgba(255,255,255,0.02);cursor:pointer;border:1px solid rgba(255,255,255,0.03);font-weight:700;transition:transform 150ms, box-shadow 150ms}
+  .opt:hover{transform:translateY(-4px);box-shadow:0 10px 22px rgba(0,0,0,0.5)}
+  .opt.correct{background:linear-gradient(90deg, rgba(22,163,74,0.12), rgba(22,163,74,0.05));border-color:rgba(22,163,74,0.3)}
+  .opt.wrong{background:linear-gradient(90deg, rgba(239,68,68,0.08), rgba(239,68,68,0.03));border-color:rgba(239,68,68,0.25)}
+  .hud{display:flex;justify-content:space-between;align-items:center;padding:10px 18px}
+  .pill{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.02);font-weight:800}
+  .meter{height:14px;background:rgba(255,255,255,0.03);border-radius:999px;overflow:hidden;margin-left:8px;flex:1}
+  .meter > i{display:block;height:100%;background:linear-gradient(90deg,var(--leaf),#2db86b);width:0%}
+  .logMini{position:absolute;right:18px;top:18px;background:rgba(0,0,0,0.25);padding:8px;border-radius:8px;font-size:12px;color:var(--muted)}
+  /* transitions between screens */
+  .screen{padding:12px;transition:opacity 420ms, transform 420ms}
+  .hidden{opacity:0;transform:translateY(8px);pointer-events:none}
+  /* right panel */
+  aside.panel{padding:14px}
+  .controls{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  button.btn{background:linear-gradient(90deg,var(--leaf),#38b16a);border:none;padding:10px 12px;border-radius:10px;color:#04263b;font-weight:900;cursor:pointer}
+  button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:8px 12px;border-radius:10px}
+  .feedback{margin-top:12px;padding:10px;border-radius:10px;min-height:48px;font-weight:700}
+  .feedback.good{background:linear-gradient(90deg, rgba(22,163,74,0.12), rgba(22,163,74,0.05));color:var(--good)}
+  .feedback.bad{background:linear-gradient(90deg, rgba(239,68,68,0.08), rgba(239,68,68,0.03));color:var(--bad)}
+  .cert{display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(2,6,23,0.7);padding:20px}
+  .certBox{max-width:720px;width:100%;background:linear-gradient(180deg,#071428,#081827);border-radius:12px;padding:20px;color:#e6eef8}
+  .cert-title{font-size:22px;font-weight:900;color:var(--gold)}
+  .small{font-size:13px;color:var(--muted)}
+  @media(max-width:980px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">أ</div>
+    <div>
+      <h1>مغامرة أدغال الأعداد</h1>
+      <div class="subtitle">٣ مراحل — ١٠ أسئلة لكل مرحلة — اختيارات سريعة وإحساس لعبة حقيقي</div>
+    </div>
+  </header>
+
+  <div class="topbar">
+    <div class="panel">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div>
+          <div class="small">اللاعب:</div>
+          <div id="playerName" style="font-weight:900">—</div>
+        </div>
+        <div style="margin-left:12px">
+          <div class="small">مرحلة:</div>
+          <div id="stageLabel" style="font-weight:900">—</div>
+        </div>
+        <div style="margin-left:12px">
+          <div class="small">السؤال:</div>
+          <div id="qCount" style="font-weight:900">0 / 30</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      <button class="ghost" id="resetBtn">↺ إعادة</button>
+      <button class="ghost" id="saveBtn">💾 حفظ</button>
+      <button class="ghost" id="musicToggle">تشغيل الموسيقى</button>
+      <button class="btn" id="startBtn">▶️ ابدأ المغامرة</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <main class="game panel">
+      <!-- Jungle area -->
+      <div class="jungle">
+        <div class="sky"></div>
+
+        <div class="nodes" id="nodes"></div>
+
+        <div class="avatarWrap" id="avatarWrap" title="مغامرك يتحرك">
+          <div class="avatar" id="avatar">🧑‍🚀</div>
+        </div>
+
+        <div class="path"></div>
+
+        <div class="logMini" id="mini">جاهز للمغامرة</div>
+      </div>
+
+      <!-- Question card -->
+      <div class="qcard screen" id="gameScreen">
+        <div class="hud">
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="pill">نقاط: <span id="points">0</span></div>
+            <div class="pill">صح: <span id="right">0</span></div>
+            <div class="pill">خطأ: <span id="wrong">0</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="small">التقدّم العام</div>
+            <div class="meter"><i id="globalBar"></i></div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="flex:1">
+            <div class="qtext" id="qText">اضغط "ابدأ المغامرة" للانطلاق في أدغال الأعداد!</div>
+
+            <div class="options" id="options" style="margin-top:18px"></div>
+          </div>
+
+          <div style="width:260px;margin-left:18px">
+            <div style="font-weight:800">قصّة المغامرة</div>
+            <div class="small" style="margin-top:8px">
+              أنت مغامر تدخل أدغال الأعداد. كل سؤال صحيح يقربك من الكنز: جسر يُبنى، شجرة تُفتَح، باب يفتح. تجاوب بسرعة، ولا تقلق إن أخطأت — ستتعلم وتتابع.
+            </div>
+
+            <div id="hintArea" class="feedback small" style="margin-top:12px">التلميح سيظهر هنا.</div>
+
+            <div style="margin-top:12px" class="controls">
+              <button class="ghost" id="hintBtn">💡 تلميح</button>
+              <button class="ghost" id="skipBtn">⏭️ تخطى (خصم نقاط)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <aside class="panel">
+      <div style="font-weight:800">ضبط وحفظ</div>
+      <div class="small" style="margin-top:8px">أدخل اسمك قبل البدء — التقدّم يُحفظ محليًا.</div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <input id="nameInput" placeholder="اكتب اسم المغامر" style="flex:1;padding:8px;border-radius:8px;border:none;background:rgba(255,255,255,0.02);color:inherit" />
+        <button class="btn" id="setName">حفظ</button>
+      </div>
+
+      <div style="margin-top:12px">
+        <div style="font-weight:800">المراحل</div>
+        <ol style="margin-top:8px">
+          <li>سهل — 10 أسئلة</li>
+          <li>متوسط — 10 أسئلة</li>
+          <li>صعب — 10 أسئلة</li>
+        </ol>
+      </div>
+
+      <div style="margin-top:12px">
+        <div style="font-weight:800">السجل الكامل</div>
+        <div id="logArea" class="small" style="margin-top:8px;max-height:220px;overflow:auto;background:rgba(255,255,255,0.01);padding:8px;border-radius:8px">لا سجلات بعد.</div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div style="font-weight:800">الشهادة</div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button class="btn" id="showCert">عرض الشهادة</button>
+          <button class="ghost" id="downloadCert">طباعة/حفظ</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer style="margin-top:14px;color:var(--muted);font-size:13px">مصممة لتكون تجربة ألعاب تعليمية ممتعة — تعمل بدون اتصال.</footer>
+</div>
+
+<!-- شهادة -->
+<div id="certModal" class="cert" style="display:none">
+  <div class="certBox">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="cert-title">شهادة المغامر — أدغال الأعداد</div>
+        <div class="small" id="certName" style="margin-top:6px">اللاعب: —</div>
+      </div>
+      <div style="text-align:right">
+        <div class="small">النقاط: <b id="certPoints">0</b></div>
+        <div class="small">النجاح: <b id="certPercent">0%</b></div>
+      </div>
+    </div>
+    <div style="margin-top:12px;background:rgba(255,255,255,0.02);padding:12px;border-radius:10px">
+      <div>تفاصيل الأسئلة: <span id="certDetail">—</span></div>
+      <div style="margin-top:8px" id="certMsg">مبروك على إكمال المغامرة!</div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+      <button class="btn" id="printBtn">🖨️ طباعة الشهادة</button>
+      <button class="ghost" id="closeCert">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* مغامرة أدغال الأعداد
+   - 3 مراحل × 10 أسئلة = 30 سؤال
+   - أسئلة بنمط اختيار من 4 خيارات (1 صحيح و 3 مشتتات)
+   - تحرّك المغامر عبر مسار في الغابة مع عقد (nodes)
+   - مؤثرات صوتية وموسيقى خلفية (بـ WebAudio)
+   - حفظ التقدّم في localStorage
+*/
+
+const TOTAL_PER_STAGE = 10;
+const STAGES = ['سهل','متوسط','صعب'];
+const TOTAL = TOTAL_PER_STAGE * STAGES.length;
+
+// حالة اللعبة
+let state = {
+  name: localStorage.getItem('jungle_name') || '',
+  stageIndex: 0,
+  indexInStage: 0,
+  globalIndex: 0,
+  points: 0,
+  right: 0,
+  wrong: 0,
+  currentProblem: null,
+  log: JSON.parse(localStorage.getItem('jungle_log') || '[]'),
+  musicOn: false,
+  best: JSON.parse(localStorage.getItem('jungle_best') || 'null')
+};
+
+// عناصر DOM
+const el = id => document.getElementById(id);
+const nameInput = el('nameInput'), setName = el('setName');
+const startBtn = el('startBtn'), resetBtn = el('resetBtn'), saveBtn = el('saveBtn');
+const musicToggle = el('musicToggle');
+const qText = el('qText'), optionsDiv = el('options');
+const hintBtn = el('hintBtn'), skipBtn = el('skipBtn');
+const pointsEl = el('points'), rightEl = el('right'), wrongEl = el('wrong');
+const globalBar = el('globalBar'), qCount = el('qCount'), stageLabel = el('stageLabel'), playerName = el('playerName');
+const avatarWrap = el('avatarWrap'), nodesEl = el('nodes'), mini = el('mini');
+const logArea = el('logArea'), hintArea = el('hintArea');
+const certModal = el('certModal'), certName = el('certName'), certPoints = el('certPoints'), certPercent = el('certPercent'), certDetail = el('certDetail'), certMsg = el('certMsg');
+const printBtn = el('printBtn'), closeCert = el('closeCert'), showCert = el('showCert'), downloadCert = el('downloadCert');
+
+// WebAudio for sounds & music
+let audioCtx = null;
+function ensureAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+function playTone(freq=440,dur=0.12,type='sine',gain=0.08){
+  try{
+    ensureAudio();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type; o.frequency.value = freq; g.gain.value = 0.0001;
+    o.connect(g); g.connect(audioCtx.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(gain, audioCtx.currentTime + 0.02);
+    setTimeout(()=>{ g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.02); o.stop(audioCtx.currentTime + 0.04); }, dur*1000);
+  }catch(e){}
+}
+function successSound(){ playTone(880,0.12,'sine'); setTimeout(()=>playTone(1320,0.08,'sine'),120); }
+function failSound(){ playTone(220,0.18,'sawtooth'); }
+function levelUpSound(){ playTone(660,0.12,'triangle'); setTimeout(()=>playTone(880,0.12,'triangle'),140); }
+
+// Background music: simple ambient loop using oscillators
+let musicNodes = [];
+let musicInterval = null;
+function startMusic(){
+  try{
+    ensureAudio();
+    // create a couple of oscillators with slow LFO on gain for ambient pad
+    const pad1 = audioCtx.createOscillator();
+    const g1 = audioCtx.createGain();
+    pad1.type = 'sine'; pad1.frequency.value = 110;
+    g1.gain.value = 0.0001;
+    pad1.connect(g1); g1.connect(audioCtx.destination); pad1.start();
+    // slowly ramp up
+    g1.gain.linearRampToValueAtTime(0.02, audioCtx.currentTime + 1.5);
+
+    const pad2 = audioCtx.createOscillator();
+    const g2 = audioCtx.createGain();
+    pad2.type = 'triangle'; pad2.frequency.value = 220;
+    g2.gain.value = 0.0001;
+    pad2.connect(g2); g2.connect(audioCtx.destination); pad2.start();
+    g2.gain.linearRampToValueAtTime(0.015, audioCtx.currentTime + 1.5);
+
+    musicNodes = [pad1,g1,pad2,g2];
+
+    // gentle percussive birds/chime occasionally
+    musicInterval = setInterval(()=>{ playTone(880 + Math.random()*400, 0.08, 'sine', 0.06); }, 3000 + Math.random()*3000);
+    state.musicOn = true;
+    musicToggle.textContent = 'إيقاف الموسيقى';
+  }catch(e){ console.warn(e) }
+}
+function stopMusic(){
+  try{
+    if(musicInterval) clearInterval(musicInterval);
+    musicNodes.forEach(n => { try{ if(n.stop) n.stop(); } catch(e){} });
+    musicNodes = [];
+    musicInterval = null;
+    state.musicOn = false;
+    musicToggle.textContent = 'تشغيل الموسيقى';
+  }catch(e){}
+}
+
+// UI update
+function updateUI(){
+  playerName.textContent = state.name || '—';
+  pointsEl.textContent = state.points;
+  rightEl.textContent = state.right;
+  wrongEl.textContent = state.wrong;
+  qCount.textContent = `${state.globalIndex} / ${TOTAL}`;
+  stageLabel.textContent = STAGES[state.stageIndex];
+  // global bar
+  const pct = Math.round((state.globalIndex / TOTAL) * 100);
+  globalBar.style.width = pct + '%';
+  // update nodes if not set
+  renderNodes();
+  // log area
+  renderLog();
+}
+function renderLog(){
+  if(state.log.length===0){ logArea.innerHTML = 'لا سجلات بعد.'; return; }
+  logArea.innerHTML = state.log.slice(0,50).map(it=>{
+    return `<div style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.02)">${it.q} — <b>أنت:</b> ${it.your} — <b>الصحيح:</b> ${it.answer} — <b>${it.correct? '✔' : '✖'}</b></div>`;
+  }).join('');
+}
+
+// nodes rendering on path (30 nodes)
+function renderNodes(){
+  nodesEl.innerHTML = '';
+  const totalNodes = TOTAL;
+  for(let i=0;i<totalNodes;i++){
+    const n = document.createElement('div');
+    n.className = 'node' + (i < state.globalIndex ? ' done' : '');
+    nodesEl.appendChild(n);
+  }
+  // move avatarWrap along path based on globalIndex
+  const containerLeft = avatarWrap.parentElement.getBoundingClientRect().left;
+  const containerRight = avatarWrap.parentElement.getBoundingClientRect().right;
+  // compute percent along inner path (6%..94%)
+  const pct = (state.globalIndex / (TOTAL-1 || 1));
+  const pathWidth = avatarWrap.parentElement.clientWidth * 0.88; // approximate path width between 6% and 94%
+  const x = (avatarWrap.parentElement.clientWidth * 0.06) + pct * pathWidth;
+  avatarWrap.style.transform = `translateX(${x}px)`;
+}
+
+// generate problem with 4 options
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function generateProblem(stageIdx){
+  let range = stageIdx===0?8:stageIdx===1?20:60;
+  const types = ['add','sub','mul','div','inv','abs'];
+  const mode = types[randInt(0, types.length-1)];
+  let a = randInt(-range, range), b = randInt(-range, range);
+  if(mode==='div'){
+    // ensure divisor not zero and integer quotient
+    const divisor = randInt(1, Math.max(2, Math.abs(b)||2)) * (Math.random()<0.5?-1:1);
+    const quotient = randInt(-Math.max(1, stageIdx+1), Math.max(1, stageIdx+1));
+    const numerator = quotient * divisor;
+    return {mode, text:`${numerator} ÷ ${divisor} = ?`, answer: quotient, hint:'قسمة صحيحة — راجع الإشارة.'};
+  }
+  if(mode==='add') return {mode, text:`${a} + ${b} = ?`, answer: a + b, hint:'اجمع الأعداد وراجِع الإشارات.'};
+  if(mode==='sub') return {mode, text:`${a} - ${b} = ?`, answer: a - b, hint:'الطرح = جمع معكوس العدد الثاني.'};
+  if(mode==='mul') return {mode, text:`${a} × ${b} = ?`, answer: a * b, hint:'انتباه لإشارات الضرب.'};
+  if(mode==='inv') return {mode, text:`ما هو المعكوس الجمعي للعدد ${a}؟`, answer: -a, hint:'المعكوس الجمعي لِـ x هو -x.'};
+  if(mode==='abs') return {mode, text:`ما هي القيمة المطلقة لـ ${a}؟`, answer: Math.abs(a), hint:'القيمة المطلقة = المسافة من الصفر.'};
+  return {mode:'add', text:`${a} + ${b} = ?`, answer: a + b, hint:''};
+}
+
+// produce 3 distractors for multiple choice (avoid duplicates)
+function makeChoices(correct){
+  const opts = new Set();
+  opts.add(correct);
+  function pert(x){ // small perturbations
+    const delta = Math.max(1, Math.round(Math.abs(x)*0.2) || 2);
+    const sign = Math.random()<0.5?-1:1;
+    return x + sign * randInt(1, delta+3);
+  }
+  while(opts.size < 4){
+    let cand = pert(correct);
+    // if correct is 0, make small integers
+    if(correct === 0) cand = randInt(-6,6);
+    opts.add(cand);
+  }
+  // shuffle
+  const arr = Array.from(opts);
+  for(let i=arr.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+
+// show question with animated transition
+function showQuestion(){
+  if(state.globalIndex >= TOTAL){ endGame(); return; }
+  const prob = generateProblem(state.stageIndex);
+  state.currentProblem = prob;
+  qText.textContent = prob.text;
+  // create choices
+  const choices = makeChoices(prob.answer);
+  optionsDiv.innerHTML = '';
+  choices.forEach(ch => {
+    const d = document.createElement('div');
+    d.className = 'opt';
+    d.textContent = ch;
+    d.onclick = ()=>selectOption(d, ch);
+    optionsDiv.appendChild(d);
+  });
+  hintArea.textContent = 'تلميح: ' + (prob.hint || 'فكّر في الإشارة أو المعكوس.');
+  // update hud
+  updateUI();
+  mini.textContent = `السؤال ${state.globalIndex+1} — مرحلتك: ${STAGES[state.stageIndex]}`;
+  // small shake/entrance
+  const card = document.querySelector('.qcard');
+  card.animate([{transform:'translateY(6px)', opacity:0.02},{transform:'translateY(0)', opacity:1}], {duration:360, easing:'ease-out'});
+}
+
+// when player selects option
+let answered = false;
+function selectOption(elem, val){
+  if(answered) return;
+  answered = true;
+  const prob = state.currentProblem;
+  const correct = (Number(val) === Number(prob.answer));
+  // mark choices
+  Array.from(optionsDiv.children).forEach(ch=>{
+    ch.classList.add('disabled');
+    if(Number(ch.textContent) === Number(prob.answer)) ch.classList.add('correct');
+  });
+  if(correct){
+    elem.classList.add('correct');
+    state.points += 10 + state.stageIndex*3;
+    state.right++;
+    successSound();
+    hintArea.textContent = 'ممتاز! إجابة صحيحة.';
+  } else {
+    elem.classList.add('wrong');
+    state.points = Math.max(0, state.points - 4);
+    state.wrong++;
+    failSound();
+    hintArea.textContent = `للأسف خطأ — الجواب الصحيح: ${prob.answer}`;
+    // reveal correct already set above
+  }
+  // save log
+  state.log.unshift({q:prob.text, your: val, answer: prob.answer, correct});
+  if(state.log.length>200) state.log.pop();
+  // advance counters
+  state.globalIndex++;
+  state.indexInStage++;
+  // if stage complete, level up
+  if(state.indexInStage >= TOTAL_PER_STAGE){
+    if(state.stageIndex < STAGES.length - 1){
+      setTimeout(()=>{ transitionStageUp(); }, 700);
+    }
+  }
+  // move avatar gradually
+  renderNodes();
+  updateUI();
+  // proceed to next question after short delay
+  setTimeout(()=>{ answered=false; if(state.globalIndex >= TOTAL) { endGame(); } else { if(state.indexInStage < TOTAL_PER_STAGE) { showQuestion(); } else { // if just leveled up show next after transition handled above
+    if(state.stageIndex === STAGES.length-1 && state.indexInStage >= TOTAL_PER_STAGE) { showQuestion(); } } } }, 1000);
+}
+
+// transition when leveling up to next stage (visual & sound)
+function transitionStageUp(){
+  state.indexInStage = 0;
+  state.stageIndex = Math.min(state.stageIndex + 1, STAGES.length-1);
+  levelUpSound();
+  hintArea.textContent = `🎉 تهانينا! وصلت إلى المرحلة ${STAGES[state.stageIndex]}. استعد لما هو أصعب!`;
+  // animation: avatar jumps
+  avatarWrap.animate([{transform:'translateY(-8px)'},{transform:'translateY(0)'}], {duration:500, easing:'cubic-bezier(.2,.9,.2,1)'});
+  updateUI();
+  // show a small stage card briefly
+  const prev = qText.textContent;
+  qText.textContent = `مرحلة جديدة: ${STAGES[state.stageIndex]} — استمر يا بطل!`;
+  setTimeout(()=>{ qText.textContent = prev; showQuestion(); }, 1400);
+}
+
+// skip handler
+skipBtn.addEventListener('click', ()=>{
+  if(!state.currentProblem) return;
+  state.log.unshift({q: state.currentProblem.text, your:'تخطي', answer: state.currentProblem.answer, correct:false});
+  state.globalIndex++; state.indexInStage++; state.wrong++; state.points = Math.max(0, state.points - 2);
+  failSound();
+  updateUI();
+  if(state.globalIndex >= TOTAL) endGame(); else {
+    if(state.indexInStage >= TOTAL_PER_STAGE && state.stageIndex < STAGES.length-1) transitionStageUp();
+    else showQuestion();
+  }
+});
+
+// hint button
+hintBtn.addEventListener('click', ()=>{ if(state.currentProblem) hintArea.textContent = 'تلميح: ' + state.currentProblem.hint; else hintArea.textContent = 'لا يوجد سؤال الآن.'; });
+
+// start button & set name
+setName.addEventListener('click', ()=>{
+  const nm = nameInput.value.trim();
+  if(nm){ state.name = nm; localStorage.setItem('jungle_name', nm); updateUI(); alert('تم حفظ الاسم: ' + nm); }
+});
+startBtn.addEventListener('click', ()=>{
+  if(!state.name){
+    const nm = prompt('أدخل اسم المغامر (لحفظ التقدم)') || '';
+    state.name = nm.trim() || 'مغامر';
+    localStorage.setItem('jungle_name', state.name);
+  }
+  // reset if finished
+  if(state.globalIndex >= TOTAL){ state.stageIndex = 0; state.indexInStage = 0; state.globalIndex = 0; state.points = 0; state.right = 0; state.wrong = 0; state.log = []; }
+  showQuestion();
+  updateUI();
+});
+
+// reset
+resetBtn.addEventListener('click', ()=>{
+  if(!confirm('هل تريد إعادة اللعبة ومسح التقدّم الحالي؟')) return;
+  state.stageIndex = 0; state.indexInStage = 0; state.globalIndex = 0; state.points = 0; state.right = 0; state.wrong = 0; state.currentProblem = null; state.log = [];
+  localStorage.removeItem('jungle_log');
+  updateUI();
+  qText.textContent = 'تمت إعادة اللعبة — اضغط ابدأ لبدء مغامرة جديدة.';
+});
+
+// save
+saveBtn.addEventListener('click', ()=>{
+  localStorage.setItem('jungle_name', state.name);
+  localStorage.setItem('jungle_log', JSON.stringify(state.log.slice(0,200)));
+  localStorage.setItem('jungle_best', JSON.stringify(state.best || null));
+  alert('تم حفظ التقدم محليًا.');
+});
+
+// music toggle
+musicToggle.addEventListener('click', ()=>{
+  if(!state.musicOn) startMusic(); else stopMusic();
+});
+
+// nodes initial
+function setupNodes(){
+  nodesEl.innerHTML = '';
+  for(let i=0;i<TOTAL;i++){
+    const n = document.createElement('div'); n.className='node'; nodesEl.appendChild(n);
+  }
+}
+setupNodes();
+
+// end game and show certificate
+function endGame(){
+  // compute percent
+  const percent = Math.round((state.right / TOTAL) * 100);
+  certName.textContent = `اللاعب: ${state.name || 'مغامر'}`;
+  certPoints.textContent = state.points;
+  certPercent.textContent = percent + '%';
+  certDetail.textContent = `إجابات صحيحة: ${state.right} — إجابات خاطئة: ${state.wrong}`;
+  if(percent >= 90) certMsg.textContent = 'مبروك بطل! أنت خبير الأعداد في الأدغال!';
+  else if(percent >= 60) certMsg.textContent = 'عمل رائع — لديك قدرات جيدة!';
+  else certMsg.textContent = 'جميل! استمر في الممارسة لتتحسن أكثر.';
+  certModal.style.display = 'flex';
+  // update best
+  if(!state.best || state.points > state.best.points){
+    state.best = {name: state.name, points: state.points, date: new Date().toLocaleString('ar-EG')};
+    localStorage.setItem('jungle_best', JSON.stringify(state.best));
+  }
+  // save session log
+  localStorage.setItem('jungle_log', JSON.stringify(state.log.slice(0,200)));
+}
+
+// show certificate / print
+showCert.addEventListener('click', ()=>{ if(state.globalIndex < TOTAL) { if(!confirm('لم تُكمل المغامرة بعد. عرض الشهادة الآن؟')) return; } endGame(); });
+closeCert.addEventListener('click', ()=>{ certModal.style.display = 'none'; });
+printBtn.addEventListener('click', ()=>{
+  // build a printable HTML
+  const html = `
+  <html><head><meta charset="utf-8"><title>شهادة المغامر</title></head>
+  <body style="font-family:Tahoma,Arial;text-align:center;padding:40px;background:#fff;color:#000">
+    <h1>شهادة المغامر — أدغال الأعداد</h1>
+    <h2>${state.name || 'مغامر'}</h2>
+    <div style="margin-top:20px">
+      <div>النقاط: ${state.points}</div>
+      <div>إجابات صحيحة: ${state.right}</div>
+      <div>إجابات خاطئة: ${state.wrong}</div>
+      <div>النسبة: ${Math.round((state.right/TOTAL)*100)}%</div>
+    </div>
+    <div style="margin-top:40px">⚔️ مبروك على إكمال المغامرة ⚔️</div>
+  </body></html>`;
+  const w = window.open('', '_blank'); w.document.write(html); w.document.close(); w.print();
+});
+
+// downloadCert same as print
+downloadCert.addEventListener('click', ()=>{ printBtn.click(); });
+
+// initial restore if there is saved log
+if(state.log && state.log.length>0) renderLog();
+updateUI();
+
+// small helper log
+function logMini(msg){
+  mini.textContent = msg;
+  setTimeout(()=>{ if(mini.textContent === msg) mini.textContent = `السؤال ${state.globalIndex+1}`; }, 2200);
+}
+</script>
+</body>
+</html>
