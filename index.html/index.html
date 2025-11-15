@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة النضال الفلسطيني - مسابقة تفاعلية</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2f4e 0%, #2c3e50 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            margin: 20px 0;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ffcc00;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #4da6ff;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #ffcc00;
+        }
+
+        p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .intro-text {
+            text-align: center;
+            font-size: 1.3rem;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border-right: 5px solid #ffcc00;
+        }
+
+        .btn {
+            background: linear-gradient(to right, #ffcc00, #ff9900);
+            color: #1a2f4e;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(to right, #4da6ff, #0066cc);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(to right, #4CAF50, #2E7D32);
+            color: white;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .active {
+            display: block;
+        }
+
+        .question-container {
+            margin: 20px 0;
+        }
+
+        .paragraph-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 500px;
+            text-align: center;
+        }
+
+        .paragraph-container {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            width: 100%;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            border: 2px solid rgba(255, 204, 0, 0.3);
+        }
+
+        .paragraph-text {
+            font-size: 1.8rem;
+            text-align: center;
+            line-height: 2.2;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+        .word {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            transition: all 0.5s ease;
+            font-weight: 500;
+            font-size: 1.8rem;
+        }
+
+        .word.active {
+            background: linear-gradient(135deg, rgba(255, 204, 0, 0.4), rgba(255, 153, 0, 0.4));
+            transform: scale(1.2);
+            box-shadow: 0 8px 20px rgba(255, 204, 0, 0.4);
+            color: #fff;
+        }
+
+        .word.fade-out {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        .content-wrapper {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .image-container {
+            flex: 1;
+            height: 300px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .question-options-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .option {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .option:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .option.correct {
+            background-color: rgba(76, 175, 80, 0.7);
+            border-color: #4CAF50;
+        }
+
+        .option.incorrect {
+            background-color: rgba(244, 67, 54, 0.7);
+            border-color: #F44336;
+        }
+
+        .feedback {
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            animation: pulse 1s infinite;
+        }
+
+        .correct-feedback {
+            background-color: rgba(76, 175, 80, 0.3);
+            color: #a5d6a7;
+        }
+
+        .incorrect-feedback {
+            background-color: rgba(244, 67, 54, 0.3);
+            color: #ffab91;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+
+        .final-score {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #ffcc00;
+            margin: 20px 0;
+        }
+
+        .palestine-flag {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to bottom, #000000 0%, #000000 33%, #FFFFFF 33%, #FFFFFF 66%, #009639 66%, #009639 100%);
+            position: relative;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .palestine-flag::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 33%;
+            height: 100%;
+            background-color: #ED1C24;
+            border-radius: 5px 0 0 5px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .player-name-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .results-table th, .results-table td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-table th {
+            background-color: rgba(0, 0, 0, 0.3);
+            color: #ffcc00;
+        }
+
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .send-results {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .progress-indicator {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #ffcc00, #ff9900);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* تصميم متجاوب */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .content-wrapper {
+                flex-direction: column;
+            }
+            
+            .image-container {
+                height: 200px;
+            }
+            
+            .paragraph-text {
+                font-size: 1.4rem;
+            }
+            
+            .word {
+                font-size: 1.4rem;
+                margin: 0 5px;
+                padding: 5px 8px;
+            }
+            
+            .results-table {
+                font-size: 0.9rem;
+            }
+            
+            .results-table th, .results-table td {
+                padding: 10px 5px;
+            }
+            
+            .paragraph-container {
+                padding: 20px;
+                min-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- شاشة البداية -->
+        <div id="start-screen" class="screen active">
+            <header>
+                <div class="palestine-flag"></div>
+                <h1>لعبة النضال الفلسطيني</h1>
+ <p style="font-size: 1.3rem; margin: 10px 0; color: #ffcc00;">إعداد المعلمة: ضحى عطا</p>
+                <p>مسابقة تفاعلية للتعرف على محطات تاريخية مهمة في نضال فلسطين</p>
+            </header>
+            
+            <div class="intro-text">
+                <p>استعدوا لاكتشاف أحداث مهمة في تاريخ فلسطين!</p>
+                <p>كل كلمة تقرأها ستقربكم أكثر من فهم النضال الفلسطيني والهوية الوطنية</p>
+            </div>
+            
+            <div class="player-name-form">
+                <div class="form-group">
+                    <label for="player-name">أدخل اسمك:</label>
+                    <input type="text" id="player-name" placeholder="اكتب اسمك هنا" required>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button id="start-btn" class="btn">ابدأ اللعبة</button>
+            </div>
+        </div>
+
+        <!-- شاشة الفقرة -->
+        <div id="paragraph-screen" class="screen paragraph-screen">
+            <div class="score-container">
+                <div class="score-item">
+                    <div>السؤال</div>
+                    <div class="score-value" id="current-question">1/10</div>
+                </div>
+                <div class="score-item">
+                    <div>النقاط</div>
+                    <div class="score-value" id="score">0</div>
+                </div>
+            </div>
+            
+            <div class="progress-indicator">
+                <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            
+            <div class="paragraph-container">
+                <div id="paragraph-text" class="paragraph-text"></div>
+            </div>
+            
+            <div class="image-container">
+                <img id="paragraph-image" src="" alt="صورة الفقرة">
+            </div>
+        </div>
+
+        <!-- شاشة السؤال -->
+        <div id="question-screen" class="screen">
+            <div class="score-container">
+                <div class="score-item">
+                    <div>السؤال</div>
+                    <div class="score-value" id="current-question-number">1/10</div>
+                </div>
+                <div class="score-item">
+                    <div>النقاط</div>
+                    <div class="score-value" id="question-score">0</div>
+                </div>
+            </div>
+            
+            <div class="content-wrapper">
+                <div class="image-container">
+                    <img id="question-image" src="" alt="صورة السؤال">
+                </div>
+                
+                <div class="question-options-container">
+                    <div class="question-container">
+                        <h2 id="question-text"></h2>
+                        <div id="options-container" class="options-container"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="feedback" class="feedback" style="display: none;"></div>
+            
+            <div class="controls">
+                <button id="next-btn" class="btn btn-secondary" style="display: none;">التالي</button>
+            </div>
+        </div>
+
+        <!-- شاشة النهاية -->
+        <div id="end-screen" class="screen">
+            <header>
+                <h1>تهانينا على إتمام اللعبة!</h1>
+            </header>
+            
+            <div class="final-score" id="final-score">لقد حصلت على 0 نقطة</div>
+            
+            <div class="intro-text">
+                <p>الاستقلال الفلسطيني ليس مجرد تاريخ، بل هو رسالة أمل للأجيال القادمة ويعكس صمود الشعب الفلسطيني رغم كل التحديات.</p>
+                <p>تذكّر أن الاستقلال الفلسطيني هو رمز الصمود والحرية، وأن كل فلسطيني يحمل فلسطين في قلبه وعقله.</p>
+                <p>نشيدنا الوطني يرفرف عاليًا ويذكرنا دائمًا بحقنا في الحرية والكرامة.</p>
+            </div>
+            
+            <div class="palestine-flag" style="margin: 30px 0;"></div>
+            
+            <h3>نتيجة اللعبة:</h3>
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>اسم اللاعب</th>
+                        <th>النقاط</th>
+                        <th>عدد الأسئلة</th>
+                        <th>النسبة المئوية</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="result-name">-</td>
+                        <td id="result-score">0</td>
+                        <td id="result-total">10</td>
+                        <td id="result-percentage">0%</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="send-results">
+                <button id="send-results-btn" class="btn btn-success">إرسال النتائج</button>
+                <div id="send-status" class="intro-text hidden"></div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button id="restart-btn" class="btn">العب مرة أخرى</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- عنصر الصوت -->
+    <audio id="background-audio" loop>
+        <source src="v1.mp3" type="audio/mpeg">
+        متصفحك لا يدعم عنصر الصوت.
+    </audio>
+
+    <!-- نموذج إرسال النتائج (مخفي) -->
+    <form id="results-form" action="https://formspree.io/f/mpwojwqy" method="POST" class="hidden">
+        <input type="text" name="name" id="form-name">
+        <input type="text" name="score" id="form-score">
+        <input type="text" name="total" id="form-total">
+        <input type="text" name="percentage" id="form-percentage">
+    </form>
+
+    <script>
+        // بيانات الأسئلة الأصلية مع إجابات صحيحة متنوعة
+        const originalQuestions = [
+            {
+                paragraph: "في عام 1917 صدر وعد بلفور، وهو إعلان من بريطانيا يعد فيه الشعب اليهودي بإقامة وطن قومي لهم في فلسطين، مما شكل بداية مرحلة سياسية جديدة ومأساوية للشعب الفلسطيني.",
+                question: "في أي عام صدر وعد بلفور؟",
+                options: ["1917", "1920", "1948", "1988"],
+                correctAnswer: 0,
+                image: "m1.jfif"
+            },
+            {
+                paragraph: "في عام 1948 حدثت النكبة، وهي عملية تهجير واسع للشعب الفلسطيني من مدنه وقراه بعد إعلان قيام دولة إسرائيل، وأسفرت عن فقدان الفلسطينيين لأراضيهم وممتلكاتهم.",
+                question: "ماذا يسمى الحدث الذي وقع عام 1948 والذي تهجر فيه الفلسطينيون من أراضيهم؟",
+                options: ["النكبة", "الاستقلال", "وعد بلفور", "الانتفاضة"],
+                correctAnswer: 0,
+                image: "m2.jfif"
+            },
+            {
+                paragraph: "في عام 1965 انطلقت الثورة الفلسطينية المعاصرة بقيادة منظمة التحرير الفلسطينية، بهدف استعادة الحقوق الوطنية الفلسطينية.",
+                question: "متى بدأت الثورة الفلسطينية المعاصرة؟",
+                options: ["1965", "1974", "1988", "2012"],
+                correctAnswer: 0,
+                image: "m3.jfif"
+            },
+            {
+                paragraph: "في عام 1974 اعترفت الأمم المتحدة بمنظمة التحرير الفلسطينية كممثل شرعي ووحيد للشعب الفلسطيني، وهو ما شكل انتصارًا سياسيًا مهمًا للقضية الفلسطينية.",
+                question: "متى اعترفت الأمم المتحدة بمنظمة التحرير الفلسطينية ممثلاً شرعياً للشعب الفلسطيني؟",
+                options: ["1974", "1965", "1988", "2012"],
+                correctAnswer: 0,
+                image: "m4.jfif"
+            },
+            {
+                paragraph: "في الخامس عشر من تشرين الثاني 1988 أعلن الرئيس الفلسطيني الراحل ياسر عرفات استقلال دولة فلسطين من الجزائر، وأعلن القدس عاصمة لها.",
+                question: "أين أعلن ياسر عرفات استقلال دولة فلسطين؟",
+                options: ["الجزائر", "رام الله", "القدس", "عمان"],
+                correctAnswer: 0,
+                image: "m5.jfif"
+            },
+            {
+                paragraph: "في عام 2012 حصلت فلسطين على صفة دولة مراقب غير عضو في الأمم المتحدة، وهو اعتراف دولي مهم يعزز مكانة فلسطين على المستوى العالمي.",
+                question: "ماذا حصلت عليه فلسطين في الأمم المتحدة عام 2012؟",
+                options: ["دولة مراقب غير عضو", "عضو كامل", "مندوبة خاصة", "لجنة تعليمية"],
+                correctAnswer: 0,
+                image: "m1.jfif"
+            },
+            {
+                paragraph: "العلم الفلسطيني يرفرف في القلوب قبل الساحات، فهو رمز للوطنية والصمود وحق الفلسطينيين في الحرية والاستقلال.",
+                question: "ماذا يرمز العلم الفلسطيني في قلوب الناس؟",
+                options: ["الوطنية", "الرياضة", "العلم", "التجارة"],
+                correctAnswer: 0,
+                image: "m2.jfif"
+            },
+            {
+                paragraph: "الاستقلال الفلسطيني ليس مجرد تاريخ، بل هو رسالة أمل للأجيال القادمة ويعكس صمود الشعب الفلسطيني رغم كل التحديات.",
+                question: "ما هو معنى الاستقلال الفلسطيني؟",
+                options: ["رسالة أمل", "يوم عطلة", "مهرجان", "شعار رياضي"],
+                correctAnswer: 0,
+                image: "m3.jfif"
+            },
+            {
+                paragraph: "يوجد العديد من الرموز الفلسطينية التي تمثل النضال والهوية مثل الكوفية الفلسطينية وشخصيات النضال الوطني.",
+                question: "أي من الرموز التالية يمثل الهوية الفلسطينية؟",
+                options: ["الكوفية الفلسطينية", "القبعة الرياضية", "العلم الأمريكي", "العلم البريطاني"],
+                correctAnswer: 0,
+                image: "m4.jfif"
+            },
+            {
+                paragraph: "عيد الاستقلال الفلسطيني مناسبة وطنية لتجديد العهد بالحرية وبناء دولة مستقلة لكل الفلسطينيين، ولتذكير الأجيال بتاريخ نضالهم.",
+                question: "ماذا يمثل عيد الاستقلال الفلسطيني؟",
+                options: ["مناسبة وطنية", "يوم عطلة", "مهرجان رياضي", "يوم علم"],
+                correctAnswer: 0,
+                image: "m5.jfif"
+            }
+        ];
+
+        // عناصر DOM
+        const startScreen = document.getElementById('start-screen');
+        const paragraphScreen = document.getElementById('paragraph-screen');
+        const questionScreen = document.getElementById('question-screen');
+        const endScreen = document.getElementById('end-screen');
+        const startBtn = document.getElementById('start-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const sendResultsBtn = document.getElementById('send-results-btn');
+        const playerNameInput = document.getElementById('player-name');
+        const paragraphText = document.getElementById('paragraph-text');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedback = document.getElementById('feedback');
+        const currentQuestionEl = document.getElementById('current-question');
+        const currentQuestionNumberEl = document.getElementById('current-question-number');
+        const scoreEl = document.getElementById('score');
+        const questionScoreEl = document.getElementById('question-score');
+        const finalScoreEl = document.getElementById('final-score');
+        const paragraphImage = document.getElementById('paragraph-image');
+        const questionImage = document.getElementById('question-image');
+        const backgroundAudio = document.getElementById('background-audio');
+        const resultName = document.getElementById('result-name');
+        const resultScore = document.getElementById('result-score');
+        const resultTotal = document.getElementById('result-total');
+        const resultPercentage = document.getElementById('result-percentage');
+        const resultsForm = document.getElementById('results-form');
+        const formName = document.getElementById('form-name');
+        const formScore = document.getElementById('form-score');
+        const formTotal = document.getElementById('form-total');
+        const formPercentage = document.getElementById('form-percentage');
+        const sendStatus = document.getElementById('send-status');
+        const progressBar = document.getElementById('progress-bar');
+
+        // متغيرات اللعبة
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswerSelected = false;
+        let wordInterval;
+        let playerName = "";
+        let questions = [];
+
+        // بدء اللعبة
+        startBtn.addEventListener('click', startGame);
+        nextBtn.addEventListener('click', nextQuestion);
+        restartBtn.addEventListener('click', restartGame);
+        sendResultsBtn.addEventListener('click', sendResults);
+
+        // تشغيل الصوت عند النقر على زر البداية
+        startBtn.addEventListener('click', function() {
+            backgroundAudio.play().catch(e => {
+                console.log("لم يتمكن المتصفح من تشغيل الصوت تلقائيًا:", e);
+            });
+        });
+
+        // دالة لخلط الأسئلة وتنويع الإجابات الصحيحة
+        function shuffleQuestions() {
+            // نسخ الأسئلة الأصلية
+            questions = JSON.parse(JSON.stringify(originalQuestions));
+            
+            // خلط ترتيب الأسئلة
+            for (let i = questions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [questions[i], questions[j]] = [questions[j], questions[i]];
+            }
+            
+            // تنويع الإجابات الصحيحة لكل سؤال
+            questions.forEach(question => {
+                // حفظ الإجابة الصحيحة الأصلية
+                const correctAnswerText = question.options[question.correctAnswer];
+                
+                // خلط الخيارات
+                for (let i = question.options.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [question.options[i], question.options[j]] = [question.options[j], question.options[i]];
+                }
+                
+                // تحديث الإجابة الصحيحة بعد الخلط
+                question.correctAnswer = question.options.indexOf(correctAnswerText);
+            });
+        }
+
+        function startGame() {
+            // التحقق من إدخال اسم اللاعب
+            playerName = playerNameInput.value.trim();
+            if (playerName === "") {
+                alert("يرجى إدخال اسمك قبل بدء اللعبة");
+                return;
+            }
+            
+            // خلط الأسئلة وتنويع الإجابات
+            shuffleQuestions();
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            updateScore();
+            loadParagraph();
+        }
+
+        function loadParagraph() {
+            isAnswerSelected = false;
+            const question = questions[currentQuestionIndex];
+            
+            // تحديث شاشة الفقرة
+            showScreen(paragraphScreen);
+            paragraphText.innerHTML = '';
+            
+            // تحديث شريط التقدم
+            const progressPercentage = (currentQuestionIndex / questions.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+            
+            // تحديث رقم السؤال الحالي
+            currentQuestionEl.textContent = `${currentQuestionIndex + 1}/${questions.length}`;
+            
+            // إعداد الصورة
+            paragraphImage.src = question.image;
+            paragraphImage.alt = "صورة الفقرة";
+            
+            // عرض الفقرة
+            displayParagraph(question.paragraph);
+        }
+
+        function displayParagraph(text) {
+            const words = text.split(' ');
+            let index = 0;
+            
+            paragraphText.innerHTML = '';
+            
+            // مسح أي interval سابق
+            if (wordInterval) clearInterval(wordInterval);
+            
+            wordInterval = setInterval(() => {
+                if (index < words.length) {
+                    // إضافة الكلمة الجديدة
+                    const wordSpan = document.createElement('span');
+                    wordSpan.classList.add('word', 'active');
+                    wordSpan.textContent = words[index];
+                    paragraphText.appendChild(wordSpan);
+                    
+                    // جعل الكلمة السابقة تتلاشى تماماً
+                    if (index > 0) {
+                        const prevWord = paragraphText.children[index - 1];
+                        prevWord.classList.remove('active');
+                        prevWord.classList.add('fade-out');
+                    }
+                    
+                    index++;
+                } else {
+                    clearInterval(wordInterval);
+                    // بعد انتهاء عرض الفقرة، الانتقال للسؤال بعد ثانية واحدة
+                    setTimeout(() => {
+                        loadQuestion();
+                    }, 1000);
+                }
+            }, 500); // سرعة عرض الكلمات (500 مللي ثانية لكل كلمة)
+        }
+
+        function loadQuestion() {
+            const question = questions[currentQuestionIndex];
+            
+            // تحديث شاشة السؤال
+            showScreen(questionScreen);
+            
+            // تحديث رقم السؤال والنقاط
+            currentQuestionNumberEl.textContent = `${currentQuestionIndex + 1}/${questions.length}`;
+            questionScoreEl.textContent = score;
+            
+            // إعداد السؤال
+            questionText.textContent = question.question;
+            
+            // إعداد الصورة
+            questionImage.src = question.image;
+            questionImage.alt = "صورة السؤال";
+            
+            // إنشاء الخيارات
+            optionsContainer.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.textContent = option;
+                optionElement.addEventListener('click', () => selectAnswer(index));
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            feedback.style.display = 'none';
+            nextBtn.style.display = 'none';
+        }
+
+        function selectAnswer(selectedIndex) {
+            if (isAnswerSelected) return;
+            
+            isAnswerSelected = true;
+            const question = questions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+            
+            // إظهار الإجابة الصحيحة والخاطئة
+            options.forEach((option, index) => {
+                if (index === question.correctAnswer) {
+                    option.classList.add('correct');
+                } else if (index === selectedIndex) {
+                    option.classList.add('incorrect');
+                }
+                option.style.pointerEvents = 'none';
+            });
+            
+            // التحقق من الإجابة وعرض التغذية الراجعة
+            if (selectedIndex === question.correctAnswer) {
+                score++;
+                updateScore();
+                feedback.textContent = "إجابة صحيحة! أحسنت!";
+                feedback.className = "feedback correct-feedback";
+            } else {
+                feedback.textContent = `إجابة خاطئة. الإجابة الصحيحة هي: ${question.options[question.correctAnswer]}`;
+                feedback.className = "feedback incorrect-feedback";
+            }
+            
+            feedback.style.display = 'block';
+            nextBtn.style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                loadParagraph();
+            } else {
+                endGame();
+            }
+        }
+
+        function endGame() {
+            showScreen(endScreen);
+            
+            // حساب النسبة المئوية
+            const percentage = Math.round((score / questions.length) * 100);
+            
+            // تحديث النتائج
+            finalScoreEl.textContent = `لقد حصلت على ${score} نقطة من ${questions.length}`;
+            resultName.textContent = playerName;
+            resultScore.textContent = score;
+            resultTotal.textContent = questions.length;
+            resultPercentage.textContent = `${percentage}%`;
+            
+            // إعداد نموذج الإرسال
+            formName.value = playerName;
+            formScore.value = score;
+            formTotal.value = questions.length;
+            formPercentage.value = `${percentage}%`;
+            
+            // إيقاف الصوت عند انتهاء اللعبة
+            backgroundAudio.pause();
+            backgroundAudio.currentTime = 0;
+        }
+
+        function sendResults() {
+            sendStatus.textContent = "جاري إرسال النتائج...";
+            sendStatus.className = "intro-text";
+            sendStatus.classList.remove("hidden");
+            
+            // إرسال النتائج عبر Formspree
+            fetch(resultsForm.action, {
+                method: 'POST',
+                body: new FormData(resultsForm),
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    sendStatus.textContent = "تم إرسال النتائج بنجاح!";
+                    sendStatus.style.backgroundColor = "rgba(76, 175, 80, 0.3)";
+                    sendResultsBtn.disabled = true;
+                } else {
+                    throw new Error('فشل في إرسال النتائج');
+                }
+            })
+            .catch(error => {
+                sendStatus.textContent = "حدث خطأ أثناء إرسال النتائج. يرجى المحاولة مرة أخرى.";
+                sendStatus.style.backgroundColor = "rgba(244, 67, 54, 0.3)";
+                console.error('Error:', error);
+            });
+        }
+
+        function restartGame() {
+            // إعادة تعيين جميع المتغيرات
+            playerNameInput.value = "";
+            currentQuestionIndex = 0;
+            score = 0;
+            isAnswerSelected = false;
+            
+            // إعادة تعيين زر إرسال النتائج
+            sendResultsBtn.disabled = false;
+            sendStatus.classList.add("hidden");
+            
+            showScreen(startScreen);
+        }
+
+        function showScreen(screen) {
+            startScreen.classList.remove('active');
+            paragraphScreen.classList.remove('active');
+            questionScreen.classList.remove('active');
+            endScreen.classList.remove('active');
+            screen.classList.add('active');
+        }
+
+        function updateScore() {
+            scoreEl.textContent = score;
+            questionScoreEl.textContent = score;
+        }
+    </script>
+</body>
+</html>
